@@ -1,0 +1,17 @@
+{% extends 'schedule/base_admin.html' %}
+
+{% block content %}
+
+ <div id="dashboard">
+        <h1>Create New Schedule</h1>
+
+        <form method="POST" action="">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Create Schedule</button>
+        </form>
+
+ </div>
+
+
+{% endblock %}

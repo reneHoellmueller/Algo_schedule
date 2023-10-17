@@ -1,0 +1,118 @@
+<!-- non_working_days.html -->
+
+{% extends 'coworkers/base_coworker.html' %}  <!-- Ersetzen Sie 'your_base_template.html' mit dem Namen Ihres Basis-Templates. -->
+{% block content %}
+
+<div class="container mt-4">
+    <h1>Nichtarbeitstage verwalten</h1>
+
+    <form id="nonWorkingDayForm">
+        <label for="date">Datum:</label>
+        <input type="date" id="date" name="date" required><br><br>
+        <label for="note">Notiz (optional):</label>
+        <input type="text" id="note" name="note"><br><br>
+        <input type="submit" value="Tag hinzufügen">
+    </form>
+
+    <h2 class="mt-4">Zukünftige nichtarbeitstage</h2>
+    <ul id="nonWorkingDayList" class="list-group">
+        <!-- Die Liste wird dynamisch mit JavaScript gefüllt -->
+    </ul>
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script>
+const userToken = '{{ user.auth_token.key }}';
+console.log(userToken);
+
+document.getElementById('nonWorkingDayForm').addEventListener('submit', function(e){
+    e.preventDefault();
+
+    const data = {
+        date: document.getElementById('date').value,
+        note: document.getElementById('note').value,
+    };
+
+    fetch('/api/nonworkingdays/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Token ${userToken}`
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.id) {
+            // Fügen Sie das neue Element zur Liste hinzu.
+            appendToNonWorkingDayList(data);
+        } else {
+            // Fehlermeldung anzeigen
+            console.error('Error:', data);
+        }
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
+});
+
+function appendToNonWorkingDayList(data) {
+    const ul = document.getElementById('nonWorkingDayList');
+    const li = document.createElement('li');
+    li.className = 'list-group-item';
+    li.id = `nonWorkingDayItem-${data.id}`;
+    li.innerHTML = `
+        <strong>${data.date}</strong>
+        <p>${data.note}</p>
+        <button onclick="deleteNonWorkingDay(${data.id})" class="btn btn-danger">Löschen</button>
+    `;
+    ul.appendChild(li);
+}
+
+function deleteNonWorkingDay(id) {
+    fetch(`/api/nonworkingdays/${id}/`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Token ${userToken}`
+        },
+    })
+    .then(response => {
+        if(response.ok) {
+            // Entfernen Sie den Eintrag aus der Liste
+            document.getElementById(`nonWorkingDayItem-${id}`).remove();
+        } else {
+            console.error('Error:', response);
+        }
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
+}
+
+// Beim Laden der Seite alle zukünftigen nichtarbeitstage abrufen und anzeigen.
+document.addEventListener('DOMContentLoaded', () => {
+    fetch('/api/nonworkingdays/', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Token ${userToken}`
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        data.forEach(nonWorkingDay => {
+            if (new Date(nonWorkingDay.date) >= new Date()) {
+                appendToNonWorkingDayList(nonWorkingDay);
+            }
+        });
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
+});
+
+</script>
+{% endblock %}

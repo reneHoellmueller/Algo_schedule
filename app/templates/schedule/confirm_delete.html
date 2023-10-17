@@ -1,0 +1,12 @@
+{% extends 'schedule/base_admin.html' %}
+
+{% block content %}
+    <h1>{{ object_name|capfirst }} löschen</h1>
+    <p>Sind Sie sicher, dass Sie "{{ object }}" löschen möchten? Dieser Vorgang kann nicht rückgängig gemacht werden.</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Löschen</button>
+        <a href="{% url return_url %}" class="btn btn-secondary">Abbrechen</a>
+    </form>
+{% endblock %}

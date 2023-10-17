@@ -1,0 +1,145 @@
+<!-- shift_preference_form.html -->
+
+{% extends 'coworkers/base_coworker.html' %}
+{% block content %}
+
+<div class="container mt-4">
+<h1>Bevorzugte Arbeitszeiten</h1>
+<form id="preferenceForm">
+    <label for="start_time">Startzeit:</label>
+    <input type="time" id="start_time" name="start_time" required><br><br>
+
+    <label for="end_time">Endzeit:</label>
+    <input type="time" id="end_time" name="end_time" required><br><br>
+
+    <label for="day_of_week">Wochentag:</label>
+    <select id="day_of_week" name="day_of_week">
+        <option value="" selected>Wählen Sie einen Wochentag</option>
+        <option value="0">Montag</option>
+        <option value="1">Dienstag</option>
+        <option value="2">Mittwoch</option>
+        <option value="3">Donnerstag</option>
+        <option value="4">Freitag</option>
+        <option value="5">Samstag</option>
+        <option value="6">Sonntag</option>
+    </select><br><br>
+
+    <label for="preference_type">Präferenztyp:</label>
+    <select id="preference_type" name="preference_type" required>
+        <option value="P">Bevorzugt</option>
+        <option value="N">Nicht verfügbar</option>
+    </select><br><br>
+
+    <input type="submit" value="Präferenz speichern">
+</form>
+<h2 class="mt-4">Ihre gespeicherten Präferenzen</h2>
+    {% if shift_preferences %}
+        <ul class="list-group">
+        {% for preference in shift_preferences.all %}
+            <li class="list-group-item">
+                <strong>Präferenztyp:</strong> {{ preference.get_preference_type_display }} <br>
+                <strong>Startzeit:</strong> {{ preference.start_time|time:"H:i" }} <br>
+                <strong>Endzeit:</strong> {{ preference.end_time|time:"H:i" }} <br>
+                <strong>Wochentag:</strong> {{ preference.day_of_week }} <br>
+                <strong>Datum:</strong> {{ preference.date|date:"d.m.Y" }} <br>
+                <button class="btn btn-danger delete-btn" data-id="{{preference.id}}" data-bs-toggle="modal" data-bs-target="#deleteModal">Löschen</button>
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>Sie haben noch keine Präferenzen gespeichert.</p>
+    {% endif %}
+</div>
+
+<!-- Modal zum Bestätigen des Löschens -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Präferenz löschen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Sind Sie sicher, dass Sie diese Präferenz löschen möchten?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Löschen</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script>
+
+document.addEventListener('DOMContentLoaded', () => {
+    const userToken = '{{ user.auth_token.key }}';
+    document.getElementById('preferenceForm').addEventListener('submit', (e) => submitForm(e, userToken));
+    document.getElementById('confirmDeleteBtn').addEventListener('click', () => deletePreference(userToken));
+    document.querySelectorAll('.delete-btn').forEach(button => button.addEventListener('click', setToDeleteId));
+});
+
+let toDeleteId = null;
+
+function setToDeleteId(e) {
+    toDeleteId = e.target.getAttribute('data-id');
+}
+
+function submitForm(e, userToken) {
+    e.preventDefault();
+    const data = {
+        start_time: document.getElementById('start_time').value,
+        end_time: document.getElementById('end_time').value,
+        day_of_week: document.getElementById('day_of_week').value,
+        preference_type: document.getElementById('preference_type').value,
+    };
+
+    apiCall('/api/shift_preference/', 'POST', data, userToken)
+    .then(data => {
+        console.log('Success:', data);
+        window.location.reload();
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
+}
+
+function deletePreference(userToken) {
+    if (!toDeleteId) return;
+
+    apiCall(`/api/shift_preference/${toDeleteId}/`, 'DELETE', {}, userToken)
+    .then(data => {
+        console.log('Deleted:', data);
+        window.location.reload();
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
+}
+
+function apiCall(url, method, data, userToken) {
+    return fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Token ${userToken}`
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        window.location.reload();
+        if (!response.ok) {
+            return response.json().then(err => {
+                console.error("API error:", err);
+                throw err;
+            });
+        }
+        return response.json();
+    });
+}
+</script>
+
+{% endblock %}

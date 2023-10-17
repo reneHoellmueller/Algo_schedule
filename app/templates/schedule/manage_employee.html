@@ -1,0 +1,58 @@
+{% extends 'schedule/base_admin.html' %}
+
+{% block content %}
+
+    {% if messages %}
+    <div class="alert alert-success">
+        {% for message in messages %}
+            {{ message }}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <h1 class="mb-4">Mitarbeiter-Verwaltung</h1>
+
+    <h2 class="mb-3">Neuer Mitarbeiter</h2>
+    <form method="post" class="mb-5">
+        {% csrf_token %}
+        <div class="mb-3">
+            {{ form.first_name.label_tag }} {{ form.first_name }}
+        </div>
+        <div class="mb-3">
+            {{ form.last_name.label_tag }} {{ form.last_name }}
+        </div>
+        <div class="mb-3">
+            {{ form.email.label_tag }} {{ form.email }}
+        </div>
+        <div class="mb-3">
+            {{ form.password.label_tag }} {{ form.password }}
+        </div>
+        <div class="mb-3">
+            {{ form.club.label_tag }} {{ form.club }}
+        </div>
+        <div class="mb-3">
+            {{ form.weekly_hours.label_tag }} {{ form.weekly_hours }}
+        </div>
+        <div class="mb-3">
+            {{ form.color.label_tag }} {{ form.color }}
+        </div>
+        <button type="submit" class="btn btn-primary">Mitarbeiter speichern</button>
+    </form>
+
+    <h2 class="mb-3">Bestehende Mitarbeiter</h2>
+    <ul class="list-group">
+        {% for employee in employees %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                {{ employee.first_name }} {{ employee.last_name }} ({{ employee.club }})
+                <div>
+                    <a href="{% url 'edit_employee' employee.id %}" class="btn btn-sm btn-outline-primary me-2">Bearbeiten</a>
+                    <a href="{% url 'delete_employee' employee.id %}" class="btn btn-sm btn-outline-danger">Löschen</a>
+                </div>
+            </li>
+        {% empty %}
+            <li class="list-group-item">
+                Keine Mitarbeiter vorhanden.
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

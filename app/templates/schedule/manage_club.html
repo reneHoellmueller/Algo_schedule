@@ -1,0 +1,50 @@
+{% extends 'schedule/base_admin.html' %}
+
+{% block content %}
+    <div class="container">
+        <h1 class="my-4">Club Management</h1>
+
+        <div class="mb-5">
+            <h2>Neuen Club hinzufügen/bearbeiten</h2>
+            <form method="post" action="{% url 'manage_club' %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    {{ form.as_p }}
+                </div>
+                <button type="submit" class="btn btn-primary">Club speichern</button>
+            </form>
+        </div>
+
+        <div class="mb-5">
+            <h2>Vorhandene Clubs:</h2>
+            {% for club in clubs %}
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h3 class="d-inline">{{ club.name }}</h3>
+                        <div class="float-end">
+                            <a href="{% url 'manage_club_edit' club.id %}" class="btn btn-warning btn-sm">Bearbeiten</a>
+                            <a href="{% url 'delete_club' club.id %}" class="btn btn-danger btn-sm">Löschen</a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h4>Öffnungszeiten:</h4>
+                        {% if club.opening_times.all %}
+                            <ul>
+                                {% for opening_time in club.opening_times.all %}
+                                    <li>
+                                        {{ opening_time }}
+                                        <a href="{% url 'edit_opening_time' opening_time.id %}" class="btn btn-link btn-sm p-0">Bearbeiten</a>
+                                        <a href="{% url 'delete_opening_time' opening_time.id %}" class="btn btn-link btn-sm p-0 text-danger">Löschen</a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p>Keine Öffnungszeiten festgelegt.</p>
+                        {% endif %}
+                        <a href="{% url 'add_opening_time' club.id %}" class="btn btn-success btn-sm">Öffnungszeit hinzufügen</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

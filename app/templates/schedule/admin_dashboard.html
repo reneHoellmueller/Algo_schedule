@@ -1,0 +1,26 @@
+{% extends 'schedule/base_admin.html' %}
+
+{% block content %}
+    <h1>Admin Dashboard</h1>
+
+    <h2 id="clubs">Clubs</h2>
+    <ul>
+        {% for club in clubs %}
+            <li>{{ club.name }} - {{ club.opening_time }} to {{ club.closing_time }}</li>
+        {% endfor %}
+    </ul>
+
+    <h2 id="dienstplanes">Dienstpläne</h2>
+    <ul>
+        {% for dienstplan in dienstplanes %}
+            <li>{{ dienstplan }}</li>
+        {% endfor %}
+    </ul>
+
+    <h2 id="employees">Mitarbeiter</h2>
+    <ul>
+        {% for employee in employees %}
+            <li>{{ employee.first_name }} {{ employee.last_name }} - {{ employee.email }}</li>
+        {% endfor %}
+    </ul>
+{% endblock %}
